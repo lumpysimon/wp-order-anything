@@ -1,0 +1,35 @@
+#ll_reorder_list {
+	background-color: #fff;
+	list-style: none;
+	margin: 20px 20px 20px 0px;
+	max-width: 600px;
+	padding: 10px 20px 10px 20px;
+	width: 90%;
+}
+
+#ll_reorder_list .lineitem {
+	border: 3px solid #f1f1f1;
+	background-color: #f1f1f1;
+	color: #333;
+	cursor: move;
+	font-size: 13px;
+	font-weight: bold;
+	margin: 10px 0;
+	padding: 5px 10px 5px 10px;
+	height: 2em;
+	line-height: 2em;
+}
+
+#ll_reorder_list .sortable-placeholder {
+	border: 3px dashed #222;
+	margin: 10px 0;
+	padding: 5px 10px;
+	height: 2em;
+	line-height: 2em;
+}
+
+#ll_reorder_list .ui-sortable-helper {
+	background-color: #222;
+	border: 3px solid #222;
+	color: #2ea2cc;
+}
