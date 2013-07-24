@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name:  Order Anything
-Description:  Set the order of any non-hierarchical custom post type using drag n drop.
+Description:  Set the order of any custom post type using drag n drop.
 Version:      0.0001dev
 License:      GPL v2 or later
 Plugin URI:   https://github.com/lumpysimon/wp-order-anything
@@ -12,11 +12,12 @@ Text Domain:  ll_order_anything
 Domain Path:  /languages/
 
 
+
 	-------
 	Credits
 	-------
 
-	This plugin is based on "My Page Order" by Andrew Charlton (http://www.geekyweekly.com/mypageorder)
+	This plugin is based on "My Page Order" by Andrew Charlton: http://wordpress.org/plugins/my-page-order
 
 
 
@@ -24,8 +25,9 @@ Domain Path:  /languages/
 	What it does
 	------------
 
-	Allows you to manually specify the order of any non-hierarchical custom post type
-	in the admin screens and on the front-end of your website.
+	Allows you to manually specify the order of any custom post type
+	in the admin screens and on the front-end of your website
+	by dragging n dropping the posts on an easy-to-use admin screen.
 
 
 
@@ -79,11 +81,13 @@ defined( 'ABSPATH' ) or die();
 
 
 
-if ( ! defined( 'LLPD_PLUGIN_PATH' ) )
-	define( 'LLPD_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
+if ( ! defined( 'LLOA_PLUGIN_PATH' ) ) {
+	define( 'LLOA_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
+}
 
-if ( ! defined( 'LLPD_PLUGIN_DIR' ) )
-	define( 'LLPD_PLUGIN_DIR', plugin_dir_url( __FILE__ ) );
+if ( ! defined( 'LLOA_PLUGIN_DIR' ) ) {
+	define( 'LLOA_PLUGIN_DIR', plugin_dir_url( __FILE__ ) );
+}
 
 
 
@@ -163,9 +167,9 @@ class lumpy_reorder_anything {
 
 		wp_register_style(
 			'll-reorder-anything',
-			LLPD_PLUGIN_DIR . 'inc/style.css',
+			LLOA_PLUGIN_DIR . 'inc/style.css',
 			null,
-			filemtime( LLPD_PLUGIN_PATH . 'inc/style.css' )
+			filemtime( LLOA_PLUGIN_PATH . 'inc/style.css' )
 			);
 
 	}
@@ -375,6 +379,9 @@ class lumpy_reorder_anything {
 		if ( is_admin() )
 			return;
 
+		if ( ! isset( $wp_query->query['post_type'] ) )
+			return;
+
 		if ( ! in_array( $wp_query->query['post_type'], $this->types ) )
 			return;
 
@@ -388,6 +395,9 @@ class lumpy_reorder_anything {
 	function admin_sort( $wp_query ) {
 
 		if ( ! is_admin() )
+			return;
+
+		if ( ! isset( $wp_query->query['post_type'] ) )
 			return;
 
 		if ( ! in_array( $wp_query->query['post_type'], $this->types ) )
