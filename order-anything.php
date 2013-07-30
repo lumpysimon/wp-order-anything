@@ -598,7 +598,7 @@ class lumpy_order_anything {
 
 				<div class="meta-box-sortables" style="min-height:0;">
 					<div class="postbox lumpy-order-anything-info" id="lumpy-order-anything-support">
-						<h3 class="hndle"><span>Need Help?</span></h3>
+						<h3 class="hndle"><span>Need help?</span></h3>
 						<div class="inside">
 							<p>If something's not working, the first step is to read the <a href="http://wordpress.org/extend/plugins/order-anything/faq/">FAQ</a>.</p>
 							<p>If your question is not answered there, please check the official <a href="http://wordpress.org/tags/order-anything?forum_id=10">support forum</a>.</p>
@@ -608,9 +608,9 @@ class lumpy_order_anything {
 
 				<div class="meta-box-sortables" style="min-height:0;">
 					<div class="postbox lumpy-order-anything-info" id="lumpy-order-anything-suggest">
-						<h3 class="hndle"><span>Like this Plugin?</span></h3>
+						<h3 class="hndle"><span>Like this plugin?</span></h3>
 						<div class="inside">
-							<p>If this plugin has helped you improve your customer relationships, please consider supporting it:</p>
+							<p>If this plugin has helped you, please consider supporting it:</p>
 							<ul>
 								<li><a href="http://wordpress.org/extend/plugins/order-anything/">Rate it and let other people know it works</a>.</li>
 								<li>Link to it or share it on Twitter or Facebook.</li>
