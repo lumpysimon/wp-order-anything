@@ -4,7 +4,6 @@ A WordPress plugin that allows you to set the order of any custom post type usin
 
 ## @TODO@
 
-* Options page to replace $types array
 * Investigate prev/next links
 * Inline docs
 * readme.txt

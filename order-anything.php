@@ -2,7 +2,7 @@
 /*
 Plugin Name:  Order Anything
 Description:  Set the order of any custom post type using drag n drop.
-Version:      0.0001dev
+Version:      0.1
 License:      GPL v2 or later
 Plugin URI:   https://github.com/lumpysimon/wp-order-anything
 Author:       Simon Blackbourn @ Lumpy Lemon
@@ -56,7 +56,7 @@ Domain Path:  /languages/
 	Changelog
 	---------
 
-	0.0001dev
+	0.1
 	Development version. Incomplete. May well break.
 
 
@@ -65,12 +65,10 @@ Domain Path:  /languages/
 	@TODO@
 	------
 
-	Options page to replace $types array
 	Investigate prev/next links
 	readme.txt
 	Inline docs
 	Localisation
-	Ajaxify drag n drop
 
 
 
@@ -81,6 +79,10 @@ Domain Path:  /languages/
 defined( 'ABSPATH' ) or die();
 
 
+
+if ( ! defined( 'LLOA_VERSION' ) ) {
+	define( 'LLOA_VERSION', '0.1' );
+}
 
 if ( ! defined( 'LLOA_PLUGIN_PATH' ) ) {
 	define( 'LLOA_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
@@ -102,8 +104,6 @@ class lumpy_order_anything {
 
 	private static $instance = null;
 
-	var $types = array( 'page', 'farm', 'gallery', 'video', 'product', 'people' );
-
 
 
 	public static function get_instance() {
@@ -121,6 +121,8 @@ class lumpy_order_anything {
 	function __construct() {
 
 		add_action( 'admin_menu',          array( $this, 'menu' ) );
+		add_action( 'admin_menu',          array( $this, 'create_options_page' ) );
+		add_action( 'admin_init',          array( $this, 'settings_init' ) );
 		add_action( 'admin_print_scripts', array( $this, 'scripts' ) );
 		add_action( 'admin_init',          array( $this, 'register_styles' ) );
 		add_action( 'admin_print_styles',  array( $this, 'add_styles' ) );
@@ -132,18 +134,37 @@ class lumpy_order_anything {
 
 
 
+	function types() {
+
+		$opts = $this->get_settings();
+
+		$types = array();
+
+		if ( is_array( $opts ) )
+			$types = array_keys( $opts );
+
+		return $types;
+
+	}
+
+
+
 	function menu() {
 
-		foreach ( $this->types as $type ) {
+		if ( $types = $this->types() ) {
 
-			add_submenu_page(
-				'edit.php?post_type=' . $type,
-				'Order',
-				'Order',
-				'edit_posts',
-				'order_' . $type,
-				array( $this, 'page' )
-				);
+			foreach ( $types as $type ) {
+
+				add_submenu_page(
+					'edit.php?post_type=' . $type,
+					'Order',
+					'Order',
+					'edit_posts',
+					'order_' . $type,
+					array( $this, 'page' )
+					);
+
+			}
 
 		}
 
@@ -413,7 +434,7 @@ class lumpy_order_anything {
 		if ( ! isset( $wp_query->query['post_type'] ) )
 			return;
 
-		if ( ! in_array( $wp_query->query['post_type'], $this->types ) )
+		if ( ! in_array( $wp_query->query['post_type'], $this->types() ) )
 			return;
 
 		$wp_query->set( 'orderby', 'menu_order' );
@@ -431,11 +452,181 @@ class lumpy_order_anything {
 		if ( ! isset( $wp_query->query['post_type'] ) )
 			return;
 
-		if ( ! in_array( $wp_query->query['post_type'], $this->types ) )
+		if ( ! in_array( $wp_query->query['post_type'], $this->types() ) )
 			return;
 
 		$wp_query->set( 'orderby', 'menu_order' );
 		$wp_query->set( 'order', 'ASC' );
+
+	}
+
+
+
+	/**
+	 * retrieve the options from the database
+	 * @return array 'lumpy-order-anything' options
+	 */
+	function get_settings() {
+
+		return get_option( 'lumpy-order-anything' );
+
+	}
+
+
+
+	/**
+	 * use the WordPress settings API to initiate the various settings
+	 * @return null
+	 */
+	function settings_init() {
+
+		register_setting(
+			'lumpy-order-anything',
+			'lumpy-order-anything',
+			array( $this, 'validate' )
+			);
+
+	}
+
+
+
+	/**
+	 * make sure that no dodgy stuff is trying to sneak through
+	 * @param  array $input options to validate
+	 * @return array        validated options
+	 */
+	function validate( $inputs ) {
+
+		$new = array();
+
+		if ( $inputs ) {
+			foreach ( $inputs as $k => $v ) {
+				$new[$k] = absint( $v );
+			}
+		}
+
+		return $new;
+
+	}
+
+
+
+	/**
+	 * update the options in the database
+	 * @param  array $opts new options settings to save
+	 * @return null
+	 */
+	function update_settings( $opts ) {
+
+		update_option( 'lumpy-order-anything', $opts );
+
+	}
+
+
+
+	function create_options_page() {
+
+		add_options_page(
+			'Order Anything Settings',
+			'Order Anything',
+			'manage_options',
+			'lumpy-order-anything',
+			array( $this, 'render_options_page' )
+			);
+
+	}
+
+
+
+	function render_options_page() {
+
+		$opts = self::get_settings();
+
+		$types = array(
+			'page' => get_post_type_object( 'page' )
+			);
+
+		if ( $cpts = get_post_types( array( '_builtin' => false ), 'objects' ) ) {
+			$types = array_merge( $types, $cpts );
+		}
+
+		?>
+
+		<div class="wrap">
+
+		<?php screen_icon( 'options-general' ); ?>
+		<h2>Order Anything Configuration</h2>
+
+		<p>Choose which post types can have their order manually set.</p>
+
+		<div class="postbox-container" style="width:65%;">
+
+			<form method="post" action="options.php">
+
+				<?php settings_fields( 'lumpy-order-anything' ); ?>
+
+				<table class="form-table">
+
+					<tbody>
+
+						<?php foreach ( $types as $type ) { ?>
+
+							<tr valign="top">
+								<th scope="row"><?php echo $type->labels->name; ?></th>
+								<td>
+									<input name="lumpy-order-anything[<?php echo $type->name; ?>]" type="checkbox" value="1" <?php checked( isset( $opts[$type->name] ) ); ?>>
+								</td>
+							</tr>
+
+						<?php } ?>
+
+					</tbody>
+
+				</table>
+
+				<p class="submit">
+					<input class="button-primary" name="lumpy-order-anything-submit" type="submit" value="Save Settings">
+				</p>
+
+			</form>
+
+		</div>
+
+		<div class="postbox-container" style="width:20%;">
+
+			<div class="metabox-holder">
+
+				<div class="meta-box-sortables" style="min-height:0;">
+					<div class="postbox lumpy-order-anything-info" id="lumpy-order-anything-support">
+						<h3 class="hndle"><span>Need Help?</span></h3>
+						<div class="inside">
+							<p>If something's not working, the first step is to read the <a href="http://wordpress.org/extend/plugins/order-anything/faq/">FAQ</a>.</p>
+							<p>If your question is not answered there, please check the official <a href="http://wordpress.org/tags/order-anything?forum_id=10">support forum</a>.</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="meta-box-sortables" style="min-height:0;">
+					<div class="postbox lumpy-order-anything-info" id="lumpy-order-anything-suggest">
+						<h3 class="hndle"><span>Like this Plugin?</span></h3>
+						<div class="inside">
+							<p>If this plugin has helped you improve your customer relationships, please consider supporting it:</p>
+							<ul>
+								<li><a href="http://wordpress.org/extend/plugins/order-anything/">Rate it and let other people know it works</a>.</li>
+								<li>Link to it or share it on Twitter or Facebook.</li>
+								<li>Write a review on your website or blog.</li>
+								<li><a href="https://twitter.com/lumpysimon">Follow me on Twitter</a></li>
+								<li><a href="http://lumpylemon.co.uk/">Commission me</a> for WordPress development, plugin or design work.</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+
+			</div>
+
+		</div>
+		</div>
+		<?php
 
 	}
 
