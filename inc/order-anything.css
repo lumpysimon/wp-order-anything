@@ -1,4 +1,16 @@
-#ll_reorder_list {
+#lumpy_order_sub_items {
+	background-color: #fff;
+	margin: 20px 20px 20px 0px;
+	max-width: 600px;
+	padding: 20px;
+	width: 90%;
+}
+
+#lumpy_order_sub_items h3 {
+	margin-top: 0;
+}
+
+#lumpy_order_list {
 	background-color: #fff;
 	list-style: none;
 	margin: 20px 20px 20px 0px;
@@ -7,7 +19,7 @@
 	width: 90%;
 }
 
-#ll_reorder_list .lineitem {
+#lumpy_order_list .lineitem {
 	border: 3px solid #f1f1f1;
 	background-color: #f1f1f1;
 	color: #333;
@@ -20,7 +32,7 @@
 	line-height: 2em;
 }
 
-#ll_reorder_list .sortable-placeholder {
+#lumpy_order_list .sortable-placeholder {
 	border: 3px dashed #222;
 	margin: 10px 0;
 	padding: 5px 10px;
@@ -28,7 +40,7 @@
 	line-height: 2em;
 }
 
-#ll_reorder_list .ui-sortable-helper {
+#lumpy_order_list .ui-sortable-helper {
 	background-color: #222;
 	border: 3px solid #222;
 	color: #2ea2cc;

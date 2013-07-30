@@ -8,7 +8,7 @@ Plugin URI:   https://github.com/lumpysimon/wp-order-anything
 Author:       Simon Blackbourn @ Lumpy Lemon
 Author URI:   https://twitter.com/lumpysimon
 Author Email: simon@lumpylemon.co.uk
-Text Domain:  ll_order_anything
+Text Domain:  lumpy_order_anything
 Domain Path:  /languages/
 
 
@@ -67,9 +67,10 @@ Domain Path:  /languages/
 
 	Options page to replace $types array
 	Investigate prev/next links
-	Post type name in page title & h2
 	readme.txt
+	Inline docs
 	Localisation
+	Ajaxify drag n drop
 
 
 
@@ -91,17 +92,17 @@ if ( ! defined( 'LLOA_PLUGIN_DIR' ) ) {
 
 
 
-lumpy_reorder_anything::get_instance();
+lumpy_order_anything::get_instance();
 
 
 
-class lumpy_reorder_anything {
+class lumpy_order_anything {
 
 
 
 	private static $instance = null;
 
-	var $types = array( 'page', 'farm', 'gallery', 'video', 'product', 'staff' );
+	var $types = array( 'page', 'farm', 'gallery', 'video', 'product', 'people' );
 
 
 
@@ -140,7 +141,7 @@ class lumpy_reorder_anything {
 				'Order',
 				'Order',
 				'edit_posts',
-				'reorder_' . $type,
+				'order_' . $type,
 				array( $this, 'page' )
 				);
 
@@ -152,10 +153,17 @@ class lumpy_reorder_anything {
 
 	function scripts() {
 
-		if ( isset( $_GET['page'] ) and 0 === strpos( $_GET['page'], 'reorder_' ) ) {
+		if ( isset( $_GET['page'] ) and 0 === strpos( $_GET['page'], 'order_' ) ) {
 
 			wp_enqueue_script( 'jquery-ui-core' );
 			wp_enqueue_script( 'jquery-ui-sortable' );
+
+			wp_enqueue_script(
+				'lumpy-order-anything',
+				LLOA_PLUGIN_DIR . 'inc/order-anything.js',
+				array( 'jquery' ),
+				filemtime( LLOA_PLUGIN_PATH . 'inc/order-anything.js' )
+				);
 
 		}
 
@@ -166,10 +174,10 @@ class lumpy_reorder_anything {
 	function register_styles() {
 
 		wp_register_style(
-			'll-reorder-anything',
-			LLOA_PLUGIN_DIR . 'inc/style.css',
+			'lumpy-order-anything',
+			LLOA_PLUGIN_DIR . 'inc/order-anything.css',
 			null,
-			filemtime( LLOA_PLUGIN_PATH . 'inc/style.css' )
+			filemtime( LLOA_PLUGIN_PATH . 'inc/order-anything.css' )
 			);
 
 	}
@@ -178,7 +186,7 @@ class lumpy_reorder_anything {
 
 	function add_styles() {
 
-		wp_enqueue_style( 'll-reorder-anything' );
+		wp_enqueue_style( 'lumpy-order-anything' );
 
 	}
 
@@ -188,90 +196,74 @@ class lumpy_reorder_anything {
 
 		global $wpdb;
 
-		$parent_id = 0;
-		$success  = '';
+		$type         = $this->get_post_type();
+		$plural       = $type->labels->name;
+		$plural_low   = strtolower( $plural );
+		$singular     = $type->labels->singular_name;
+		$singular_low = strtolower( $singular );
+		$parent_id    = 0;
+		$success      = '';
 
-		if ( isset( $_POST['btn_sub_pages'] ) ) {
-			$parent_id = $_POST['pages'];
+		if ( isset( $_POST['sub_items'] ) ) {
+			$parent_id = $_POST['items'];
 		} elseif ( isset( $_POST['hdn_parent_id'] ) ) {
 			$parent_id = $_POST['hdn_parent_id'];
 		}
 
 		if ( isset( $_POST['btn_return_parent'] ) ) {
-			$parentsParent = $wpdb->get_row( $wpdb->prepare( "SELECT post_parent FROM $wpdb->posts WHERE ID = %d ", $_POST['hdn_parent_id'] ), ARRAY_N );
-			$parent_id = $parentsParent[0];
+			$parents_parent = $wpdb->get_row( $wpdb->prepare( "SELECT post_parent FROM $wpdb->posts WHERE ID = %d ", $_POST['hdn_parent_id'] ), ARRAY_N );
+			$parent_id = $parents_parent[0];
 		}
 
-		if ( isset( $_POST['btn_order_pages'] ) ) {
+		if ( isset( $_POST['order_items'] ) ) {
 			$success = $this->update_order();
 		}
 
-		$subPageStr = $this->get_sub_pages( $parent_id );
+		$sub_items = $this->get_sub_items( $parent_id );
 
 		?>
 
 		<div class="wrap">
 
-			<form name="frm_reorder_pages" method="post" action="">
+			<form name="lumpy_order_items" method="post" action="">
 
-				<h2>Order</h2>
+				<h2>Order <?php echo $plural; ?></h2>
 
 				<?php echo $success; ?>
 
-				<p>Choose an item from the drop down to order its subitems or order the items on this level by dragging and dropping them into the desired order.</p>
+				<?php if ( $sub_items ) { ?>
 
-				<?php if ( '' != $subPageStr ) { ?>
-
-					<h3>Order Subitems</h3>
-					<select id="pages" name="pages">
-						<?php echo $subPageStr; ?>
-					</select>
-					&nbsp;<input type="submit" name="btn_sub_pages" class="button" id="btn_sub_pages" value="Order Subpages">
+					<div id="lumpy_order_sub_items">
+						<h3>Order Sub-<?php echo $plural_low; ?></h3>
+						<select id="items" name="items">
+							<?php echo $sub_items; ?>
+						</select>
+						<input type="submit" name="sub_items" class="button" id="sub_items" value="Order sub-<?php echo $plural_low; ?>">
+					</div>
 
 				<?php } ?>
 
-				<h3>Order</h3>
+				<p>Order <?php echo $plural_low; ?> by dragging and dropping them into the desired order.</p>
 
-				<ul id="ll_reorder_list">
+				<ul id="lumpy_order_list">
 
 					<?php
-					$results = $this->page_query( $parent_id );
+					$results = $this->post_query( $parent_id );
 					foreach ( $results as $row ) {
-						echo "<li id='id_$row->ID' class='lineitem'>$row->post_title</li>";
+						echo '<li id="id_' . $row->ID . '" class="lineitem">' . $row->post_title . '</li>';
 					}
 					?>
 
 				</ul>
 
-				<input type="submit" name="btn_order_pages" id="btn_order_pages" class="button-primary" value="Click to Order" onclick="javascript:orderPages(); return true;">
-				<?php echo $this->get_parent_link( $parent_id ); ?>
+				<input type="submit" name="order_items" id="order_items" class="button-primary" value="Order <?php echo $plural_low; ?>" onclick="javascript:orderItems(); return true;">
+				<?php echo $this->get_parent_link( $parent_id, $singular_low ); ?>
 				&nbsp;&nbsp;<strong id="update_text"></strong>
-				<input type="hidden" id="hdn_reorder_pages" name="hdn_reorder_pages">
+				<input type="hidden" id="hdn_order_items" name="hdn_order_items">
 				<input type="hidden" id="hdn_parent_id" name="hdn_parent_id" value="<?php echo $parent_id; ?>">
 			</form>
 
 		</div>
-
-		<script type="text/javascript">
-		// <![CDATA[
-
-			function reorder_pages_addloadevent(){
-				jQuery("#ll_reorder_list").sortable({
-					placeholder: "sortable-placeholder",
-					revert: false,
-					tolerance: "pointer"
-				});
-			};
-
-			addLoadEvent(reorder_pages_addloadevent);
-
-			function orderPages() {
-				jQuery("#update_text").html("Updating Order...");
-				jQuery("#hdn_reorder_pages").val(jQuery("#ll_reorder_list").sortable("toArray"));
-			}
-
-		// ]]>
-		</script>
 
 		<?php
 
@@ -279,9 +271,17 @@ class lumpy_reorder_anything {
 
 
 
+	function get_post_type() {
+
+		return get_post_type_object( $this->get_type() );
+
+	}
+
+
+
 	function get_type() {
 
-		return substr( $_GET['page'], 8 );
+		return sanitize_title( substr( $_GET['page'], 6 ) );
 
 	}
 
@@ -291,7 +291,7 @@ class lumpy_reorder_anything {
 
 		$type = $this->get_type();
 
-		return 'edit.php?post_type=' . $type . '&page=reorder_' . $type;
+		return 'edit.php?post_type=' . $type . '&page=order_' . $type;
 
 	}
 
@@ -299,17 +299,26 @@ class lumpy_reorder_anything {
 
 	function update_order() {
 
-		if ( isset( $_POST['hdn_reorder_pages'] ) and '' != $_POST['hdn_reorder_pages'] ) {
+		if ( isset( $_POST['hdn_order_items'] ) and '' != $_POST['hdn_order_items'] ) {
 
 			global $wpdb;
 
-			$hdn_reorder_pages = $_POST['hdn_reorder_pages'];
-			$ids              = explode( ',', $hdn_reorder_pages );
-			$result           = count( $ids );
+			$hdn_order_items = $_POST['hdn_order_items'];
+			$ids             = explode( ',', $hdn_order_items );
+			$result          = count( $ids );
 
 			for ( $i = 0; $i < $result; $i++ ) {
-				$str = str_replace( 'id_', '', $ids[$i] );
-				$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET menu_order = %d WHERE id = %d ", $i, $str ) );
+				$id = str_replace( 'id_', '', $ids[$i] );
+				$wpdb->query(
+					$wpdb->prepare( "
+						UPDATE $wpdb->posts
+						SET menu_order = %d
+						WHERE id = %d
+						",
+						$i,
+						$id
+						)
+					);
 			}
 
 			return '<div id="message" class="updated fade"><p>Order updated.</p></div>';
@@ -324,51 +333,73 @@ class lumpy_reorder_anything {
 
 
 
-	function get_sub_pages( $parent_id ) {
+	function get_sub_items( $parent_id ) {
 
 		global $wpdb;
 
-		$subPageStr = "";
-		$results    = $this->page_query( $parent_id );
-		$type = $this->get_type();
+		$out     = '';
+		$results = $this->post_query( $parent_id );
+		$type    = $this->get_type();
 
 		foreach ( $results as $row ) {
 
-			$postCount=$wpdb->get_row($wpdb->prepare("SELECT count(*) as postsCount FROM $wpdb->posts WHERE post_parent = %d and post_type = '" . $type . "' AND post_status != 'trash' AND post_status != 'auto-draft' ", $row->ID) , ARRAY_N);
-			if($postCount[0] > 0)
-		    	$subPageStr = $subPageStr."<option value='$row->ID'>".__($row->post_title)."</option>";
+			$post_count = $wpdb->get_row(
+				$wpdb->prepare( "
+					SELECT count(*) as postscount
+					FROM $wpdb->posts
+					WHERE post_parent = %d
+						AND post_type = '%s'
+						AND post_status != 'trash'
+						AND post_status != 'auto-draft'
+					",
+					$row->ID,
+					$type
+					),
+				ARRAY_N
+				);
+
+			if ( $post_count[0] > 1 ) {
+		    	$out .= '<option value="' . $row->ID . '">' . $row->post_title . '</option>';
+		    }
 
 		}
 
-		return $subPageStr;
+		return $out;
 
 	}
 
 
 
-	function page_query( $parent_id ) {
+	function post_query( $parent_id ) {
 
 		global $wpdb;
 
 		$type = $this->get_type();
 
-		return $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->posts WHERE post_parent = %d and post_type = '" . $type . "' AND post_status != 'trash' AND post_status != 'auto-draft' ORDER BY menu_order ASC", $parent_id) );
+		return $wpdb->get_results(
+			$wpdb->prepare( "
+				SELECT * FROM $wpdb->posts
+				WHERE post_parent = %d
+					AND post_type = '%s'
+					AND post_status != 'trash'
+					AND post_status != 'auto-draft'
+				ORDER BY menu_order ASC
+				",
+				$parent_id,
+				$type
+				)
+			);
 
 	}
 
 
 
-	function get_parent_link( $parent_id ) {
+	function get_parent_link( $parent_id, $item ) {
 
-		if ( 0 != $parent_id ) {
+		if ( 0 != $parent_id )
+			return '&nbsp;&nbsp;<input type="submit" class="button" id="btn_return_parent" name="btn_return_parent" value="Return to parent ' . $item . '">';
 
-			return "&nbsp;&nbsp;<input type='submit' class='button' id='btn_return_parent' name='btn_return_parent' value='Return to parent page' />";
-
-		} else {
-
-			return '';
-
-		}
+		return;
 
 	}
 

@@ -6,7 +6,7 @@ A WordPress plugin that allows you to set the order of any custom post type usin
 
 * Options page to replace $types array
 * Investigate prev/next links
-* Post type name in page title & h2
+* Inline docs
 * readme.txt
 * Localisation
 * Ajaxify drag n drop
