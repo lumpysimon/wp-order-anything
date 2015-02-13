@@ -2,12 +2,11 @@
 /*
 Plugin Name:  Order Anything
 Description:  Set the order of any custom post type using drag n drop.
-Version:      0.1
+Version:      0.2
 License:      GPL v2 or later
 Plugin URI:   https://github.com/lumpysimon/wp-order-anything
 Author:       Simon Blackbourn @ Lumpy Lemon
-Author URI:   https://twitter.com/lumpysimon
-Author Email: simon@lumpylemon.co.uk
+Author URI:   http://simonblackbourn.net
 Text Domain:  lumpy_order_anything
 Domain Path:  /languages/
 
@@ -56,7 +55,11 @@ Domain Path:  /languages/
 	Changelog
 	---------
 
-	0.1
+	02 (13th Feb 2015)
+	Only apply ordering to main query
+	Get rid of a load of crap
+
+	0.1 (July 2013)
 	Development version. Incomplete. May well break.
 
 
@@ -94,27 +97,11 @@ if ( ! defined( 'LLOA_PLUGIN_DIR' ) ) {
 
 
 
-lumpy_order_anything::get_instance();
+$lumpy_order_anything = new lumpy_order_anything;
 
 
 
 class lumpy_order_anything {
-
-
-
-	private static $instance = null;
-
-
-
-	public static function get_instance() {
-
-		if ( null == self::$instance ) {
-			self::$instance = new self;
-		}
-
-		return self::$instance;
-
-	}
 
 
 
@@ -431,6 +418,9 @@ class lumpy_order_anything {
 		if ( is_admin() )
 			return;
 
+		if ( ! $wp_query->is_main_query() )
+			return;
+
 		if ( ! isset( $wp_query->query['post_type'] ) )
 			return;
 
@@ -559,77 +549,41 @@ class lumpy_order_anything {
 
 		<p>Choose which post types can have their order manually set.</p>
 
-		<div class="postbox-container" style="width:65%;">
+		<form method="post" action="options.php">
 
-			<form method="post" action="options.php">
+			<?php settings_fields( 'lumpy-order-anything' ); ?>
 
-				<?php settings_fields( 'lumpy-order-anything' ); ?>
+			<table class="form-table">
 
-				<table class="form-table">
+				<tbody>
 
-					<tbody>
+					<?php foreach ( $types as $type ) { ?>
 
-						<?php foreach ( $types as $type ) { ?>
+						<tr valign="top">
+							<th scope="row"><?php echo $type->labels->name; ?></th>
+							<td>
+								<input name="lumpy-order-anything[<?php echo $type->name; ?>]" type="checkbox" value="1" <?php checked( isset( $opts[$type->name] ) ); ?>>
+							</td>
+						</tr>
 
-							<tr valign="top">
-								<th scope="row"><?php echo $type->labels->name; ?></th>
-								<td>
-									<input name="lumpy-order-anything[<?php echo $type->name; ?>]" type="checkbox" value="1" <?php checked( isset( $opts[$type->name] ) ); ?>>
-								</td>
-							</tr>
+					<?php } ?>
 
-						<?php } ?>
+				</tbody>
 
-					</tbody>
+			</table>
 
-				</table>
+			<p class="submit">
+				<input class="button-primary" name="lumpy-order-anything-submit" type="submit" value="Save Settings">
+			</p>
 
-				<p class="submit">
-					<input class="button-primary" name="lumpy-order-anything-submit" type="submit" value="Save Settings">
-				</p>
-
-			</form>
+		</form>
 
 		</div>
 
-		<div class="postbox-container" style="width:20%;">
-
-			<div class="metabox-holder">
-
-				<div class="meta-box-sortables" style="min-height:0;">
-					<div class="postbox lumpy-order-anything-info" id="lumpy-order-anything-support">
-						<h3 class="hndle"><span>Need help?</span></h3>
-						<div class="inside">
-							<p>If something's not working, the first step is to read the <a href="http://wordpress.org/extend/plugins/order-anything/faq/">FAQ</a>.</p>
-							<p>If your question is not answered there, please check the official <a href="http://wordpress.org/tags/order-anything?forum_id=10">support forum</a>.</p>
-						</div>
-					</div>
-				</div>
-
-				<div class="meta-box-sortables" style="min-height:0;">
-					<div class="postbox lumpy-order-anything-info" id="lumpy-order-anything-suggest">
-						<h3 class="hndle"><span>Like this plugin?</span></h3>
-						<div class="inside">
-							<p>If this plugin has helped you, please consider supporting it:</p>
-							<ul>
-								<li><a href="http://wordpress.org/extend/plugins/order-anything/">Rate it and let other people know it works</a>.</li>
-								<li>Link to it or share it on Twitter or Facebook.</li>
-								<li>Write a review on your website or blog.</li>
-								<li><a href="https://twitter.com/lumpysimon">Follow me on Twitter</a></li>
-								<li><a href="http://lumpylemon.co.uk/">Commission me</a> for WordPress development, plugin or design work.</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-
-			</div>
-
-		</div>
-		</div>
 		<?php
 
 	}
 
 
 
-}
+} // class
