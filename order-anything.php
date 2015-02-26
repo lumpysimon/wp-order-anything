@@ -55,7 +55,7 @@ Domain Path:  /languages/
 	Changelog
 	---------
 
-	02 (13th Feb 2015)
+	0.2 (13th Feb 2015)
 	Only apply ordering to main query
 	Get rid of a load of crap
 
