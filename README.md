@@ -14,9 +14,9 @@ This is very much a beta version, although I have it running on several sites wi
 
 ## Changelog
 
-* 0.2 (13th Feb 2015)
+= 0.2 (13th Feb 2015) =
 * Only apply ordering to main query
 * Get rid of a load of crap
 
-* 0.1 (July 2013)
+= 0.1 (July 2013) =
 * Development version. Incomplete. May well break.
