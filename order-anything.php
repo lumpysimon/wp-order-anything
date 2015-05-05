@@ -55,6 +55,9 @@ Domain Path:  /languages/
 	Changelog
 	---------
 
+	0.3 (5th May 2015)
+	Test for correct capability to determine if a post type can be ordered
+
 	0.2 (13th Feb 2015)
 	Only apply ordering to main query
 	Get rid of a load of crap
@@ -142,11 +145,13 @@ class lumpy_order_anything {
 
 			foreach ( $types as $type ) {
 
+				$pto = get_post_type_object( $type );
+
 				add_submenu_page(
 					'edit.php?post_type=' . $type,
 					'Order',
 					'Order',
-					'edit_posts',
+					$pto->cap->edit_posts,
 					'order_' . $type,
 					array( $this, 'page' )
 					);
