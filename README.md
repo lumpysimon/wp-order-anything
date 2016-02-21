@@ -14,6 +14,9 @@ This is very much a beta version, although I have it running on several sites wi
 
 ## Changelog
 
+### 0.4 (21st Feb 2016)
+* Use get_posts instead of $wpdb->get_results (for compatibility with Polylang plugin)
+
 ### 0.3 (5th May 2015)
 * Test for correct capability to determine if a post type can be ordered
 

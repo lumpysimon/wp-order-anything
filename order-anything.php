@@ -2,7 +2,7 @@
 /*
 Plugin Name:  Order Anything
 Description:  Set the order of any custom post type using drag n drop.
-Version:      0.2
+Version:      0.3
 License:      GPL v2 or later
 Plugin URI:   https://github.com/lumpysimon/wp-order-anything
 Author:       Simon Blackbourn @ Lumpy Lemon
