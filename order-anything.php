@@ -389,19 +389,16 @@ class lumpy_order_anything {
 
 		$type = $this->get_type();
 
-		return $wpdb->get_results(
-			$wpdb->prepare( "
-				SELECT * FROM $wpdb->posts
-				WHERE post_parent = %d
-					AND post_type = '%s'
-					AND post_status != 'trash'
-					AND post_status != 'auto-draft'
-				ORDER BY menu_order ASC
-				",
-				$parent_id,
-				$type
-				)
+		$args = array(
+			'post_type'      => $type,
+			'post_status'    => array( 'publish', 'draft' ),
+			'post_parent'    => $parent_id,
+			'orderby'        => 'menu_order',
+			'order'          => 'ASC',
+			'posts_per_page' => -1
 			);
+
+		return get_posts( $args );
 
 	}
 
