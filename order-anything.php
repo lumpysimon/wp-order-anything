@@ -90,7 +90,7 @@ defined( 'ABSPATH' ) or die();
 
 
 if ( ! defined( 'LLOA_VERSION' ) ) {
-	define( 'LLOA_VERSION', '0.1' );
+	define( 'LLOA_VERSION', '0.4' );
 }
 
 if ( ! defined( 'LLOA_PLUGIN_PATH' ) ) {
