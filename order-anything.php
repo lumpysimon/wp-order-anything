@@ -2,7 +2,7 @@
 /*
 Plugin Name:  Order Anything
 Description:  Set the order of any custom post type using drag n drop.
-Version:      0.3
+Version:      0.4
 License:      GPL v2 or later
 Plugin URI:   https://github.com/lumpysimon/wp-order-anything
 Author:       Simon Blackbourn @ Lumpy Lemon
@@ -54,6 +54,9 @@ Domain Path:  /languages/
 	---------
 	Changelog
 	---------
+
+	0.4 (21st Feb 2016)
+	Use get_posts instead of $wpdb->get_results (for compatibility with Polylang plugin)
 
 	0.3 (5th May 2015)
 	Test for correct capability to determine if a post type can be ordered
